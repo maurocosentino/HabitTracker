@@ -2,12 +2,11 @@ package com.mauro.habittracker.core.domain.usecase
 
 import com.mauro.habittracker.core.domain.model.Habit
 import com.mauro.habittracker.core.domain.repository.HabitRepository
-import kotlinx.coroutines.flow.Flow
 
-class GetHabitsUseCase(
+class DeleteHabitUseCase(
     private val repository : HabitRepository
-) {
-    operator fun invoke(): Flow<List<Habit>> {
-        return repository.getHabits()
+){
+    suspend operator fun invoke(habit: Habit){
+        repository.deleteHabit(habit)
     }
 }
