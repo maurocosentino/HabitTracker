@@ -10,7 +10,7 @@ import com.mauro.habittracker.data.local.entity.HabitLogEntity
 import com.mauro.habittracker.data.local.typeconverter.DateConverters
 
 
-@Database(entities = [HabitEntity::class, HabitLogEntity::class], version = 1)
+@Database(entities = [HabitEntity::class, HabitLogEntity::class], version = 1,exportSchema = false)
 @TypeConverters(DateConverters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun habitDao(): HabitDao

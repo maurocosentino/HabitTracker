@@ -30,7 +30,7 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "habit_db"
-        ).fallbackToDestructiveMigration().build()
+        ).fallbackToDestructiveMigration(true).build()
     }
 
     @Provides
