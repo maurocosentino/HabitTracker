@@ -30,7 +30,7 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "habit_db"
-        ).build()
+        ).fallbackToDestructiveMigration().build()
     }
 
     @Provides
@@ -49,6 +49,7 @@ object AppModule {
 abstract class RepositoryModule {
 
     @Binds
+    @Singleton
     abstract fun bindHabitRepository(
         habitRepositoryImpl: HabitRepositoryImpl
     ): HabitRepository
