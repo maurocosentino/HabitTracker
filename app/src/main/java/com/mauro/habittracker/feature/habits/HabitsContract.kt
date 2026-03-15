@@ -8,9 +8,6 @@ data class HabitState(
 )
 
 sealed class HabitIntent {
-
-    object LoadHabits : HabitIntent()
-
     data class AddHabit(val habit: Habit) : HabitIntent()
 
     data class DeleteHabit(val habit: Habit) : HabitIntent()
