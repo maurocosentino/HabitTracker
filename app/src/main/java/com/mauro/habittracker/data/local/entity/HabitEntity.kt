@@ -1,7 +1,7 @@
 package com.mauro.habittracker.data.local.entity
 
-import androidx.room3.Entity
-import androidx.room3.PrimaryKey
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
 @Entity(tableName = "habits")
 data class HabitEntity(

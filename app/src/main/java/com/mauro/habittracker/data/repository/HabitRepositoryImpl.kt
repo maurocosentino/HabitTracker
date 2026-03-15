@@ -11,9 +11,10 @@ import com.mauro.habittracker.data.mapper.toDomain
 import com.mauro.habittracker.data.mapper.toEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
 @RequiresApi(Build.VERSION_CODES.O)
-class HabitRepositoryImpl(
+class HabitRepositoryImpl @Inject constructor(
     private val habitDao: HabitDao,
     private val habitLogDao: HabitLogDao
 ) : HabitRepository {
@@ -40,6 +41,6 @@ class HabitRepositoryImpl(
     }
 
     override suspend fun insertLog(log: HabitLog) {
-        return habitLogDao.insertLog(log.toEntity())
+        habitLogDao.insertLog(log.toEntity())
     }
 }
