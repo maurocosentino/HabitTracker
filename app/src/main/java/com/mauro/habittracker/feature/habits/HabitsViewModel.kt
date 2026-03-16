@@ -25,6 +25,7 @@
     import java.time.LocalDate
     import javax.inject.Inject
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @HiltViewModel
     class HabitsViewModel @Inject constructor(
         private val getHabitsUseCase: GetHabitsUseCase,
@@ -41,6 +42,7 @@
             observeHabits()
         }
 
+        @RequiresApi(Build.VERSION_CODES.O)
         private fun observeHabits() {
 
             reduce { it.copy(isLoading = true) }
@@ -74,18 +76,18 @@
             }
         }
 
+        @RequiresApi(Build.VERSION_CODES.O)
         private fun addHabit(habit: Habit) {
             viewModelScope.launch {
                 try {
                     insertHabitUseCase(habit)
                 } catch (e: Exception) {
-                    _effect.send(
-                        HabitEffect.ShowError("Could not create habit")
-                    )
+                    _effect.send(HabitEffect.ShowError("Error inserting habit"))
                 }
             }
         }
 
+        @RequiresApi(Build.VERSION_CODES.O)
         private fun deleteHabit(habit: Habit) {
             viewModelScope.launch {
                 try {

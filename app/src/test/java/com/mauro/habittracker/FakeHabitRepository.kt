@@ -5,32 +5,35 @@ import com.mauro.habittracker.core.domain.model.HabitLog
 import com.mauro.habittracker.core.domain.repository.HabitRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 
 class FakeHabitRepository : HabitRepository {
 
-    private val habits = mutableListOf<Habit>()
+    var shouldThrowError = false
 
-    private val flow = MutableStateFlow<List<Habit>>(emptyList())
+    private val habits = MutableStateFlow<List<Habit>>(emptyList())
 
     override fun getHabits(): Flow<List<Habit>> {
-        return flow
+        return habits
     }
 
     override suspend fun insertHabit(habit: Habit) {
-        habits.add(habit)
-        flow.value = habits.toList()
+        if (shouldThrowError) {
+            throw RuntimeException("Fake error")
+        }
+
+        habits.value = habits.value + habit
     }
 
     override suspend fun deleteHabit(habit: Habit) {
-        habits.remove(habit)
-        flow.value = habits.toList()
+        habits.value = habits.value - habit
     }
 
     override fun getLogsForHabit(habitId: Long): Flow<List<HabitLog>> {
-        TODO("Not yet implemented")
+        return flowOf(emptyList())
     }
 
     override suspend fun insertLog(log: HabitLog) {
-        TODO("Not yet implemented")
+        // no-op para tests
     }
 }
