@@ -19,5 +19,7 @@ sealed class HabitEffect {
 
     data class ShowError(val message: String) : HabitEffect()
 
+    data class ShowSuccess(val message: String) : HabitEffect()
+
     object NavigateToCreateHabit : HabitEffect()
 }

@@ -95,6 +95,7 @@ class HabitsViewModel @Inject constructor(
                     completedDate = LocalDate.now()
                 )
                 insertLogUseCase(log)
+                _effect.send(HabitEffect.ShowSuccess("Habit completed!"))
             } catch (e: Exception) {
                 _effect.send(HabitEffect.ShowError(e.message ?: "Error completing habit"))
             }

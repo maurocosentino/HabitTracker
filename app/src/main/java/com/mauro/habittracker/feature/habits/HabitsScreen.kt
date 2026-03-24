@@ -34,6 +34,9 @@ fun HabitsScreen(
                 is HabitEffect.ShowError -> {
                     snackbarHostState.showSnackbar(effect.message)
                 }
+                is HabitEffect.ShowSuccess -> {
+                    snackbarHostState.showSnackbar(effect.message)
+                }
                 is HabitEffect.NavigateToCreateHabit -> {
                     showAddDialog = true
                 }
