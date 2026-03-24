@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.mauro.habittracker.core.domain.model.Habit
 import com.mauro.habittracker.core.domain.model.HabitLog
 import com.mauro.habittracker.core.domain.usecase.DeleteHabitUseCase
+import com.mauro.habittracker.core.domain.usecase.GetHabitLogsUseCase
 import com.mauro.habittracker.core.domain.usecase.GetHabitsUseCase
 import com.mauro.habittracker.core.domain.usecase.InsertHabitUseCase
 import com.mauro.habittracker.core.domain.usecase.InsertLogUseCase
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -29,6 +31,7 @@ import javax.inject.Inject
 @RequiresApi(Build.VERSION_CODES.O)
 class HabitsViewModel @Inject constructor(
     private val getHabitsUseCase: GetHabitsUseCase,
+    private val getHabitLogsUseCase: GetHabitLogsUseCase,
     private val insertHabitUseCase: InsertHabitUseCase,
     private val deleteHabitUseCase: DeleteHabitUseCase,
     private val insertLogUseCase: InsertLogUseCase
@@ -41,7 +44,7 @@ class HabitsViewModel @Inject constructor(
     val effect = _effect.receiveAsFlow()
 
     init {
-        observeHabits()
+        observeHabitsWithLogs()
     }
 
     fun onIntent(intent: HabitIntent) {
@@ -52,14 +55,46 @@ class HabitsViewModel @Inject constructor(
         }
     }
 
-    private fun observeHabits() {
+    private fun observeHabitsWithLogs() {
         getHabitsUseCase()
             .distinctUntilChanged()
+            .onEach { habits ->
+                if (habits.isEmpty()) {
+                    _state.update { it.copy(habits = emptyList(), completedTodayIds = emptySet(), isLoading = false) }
+                    return@onEach
+                }
+
+                val today = LocalDate.now().toEpochDay()
+                val logFlows = habits.map { habit ->
+                    getHabitLogsUseCase(habit.id)
+                }
+
+                combine(logFlows) { logArrays ->
+                    val completedToday = mutableSetOf<Long>()
+                    logArrays.forEachIndexed { index, logs ->
+                        val habit = habits[index]
+                        if (logs.any { it.completedDate.toEpochDay() == today }) {
+                            completedToday.add(habit.id)
+                        }
+                    }
+                    Pair(habits, completedToday)
+                }
+                    .catch { e ->
+                        _effect.trySend(HabitEffect.ShowError(e.message ?: "Error loading logs"))
+                    }
+                    .onEach { (habits, completedToday) ->
+                        _state.update {
+                            it.copy(
+                                habits = habits,
+                                completedTodayIds = completedToday,
+                                isLoading = false
+                            )
+                        }
+                    }
+                    .launchIn(viewModelScope)
+            }
             .catch { e ->
                 _effect.trySend(HabitEffect.ShowError(e.message ?: "Error loading habits"))
-            }
-            .onEach { habits ->
-                _state.update { it.copy(habits = habits, isLoading = false) }
             }
             .launchIn(viewModelScope)
     }

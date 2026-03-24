@@ -51,20 +51,46 @@ class StatisticsViewModel @Inject constructor(
                 _state.update { it.copy(isLoading = false) }
             }
             .onEach { habits ->
-                val habitStats = habits.map { habit ->
-                    HabitStats(
-                        habit = habit,
-                        completionCount = 0
-                    )
+                if (habits.isEmpty()) {
+                    _state.update {
+                        it.copy(
+                            habitStats = emptyList(),
+                            totalHabits = 0,
+                            totalCompletions = 0,
+                            isLoading = false
+                        )
+                    }
+                    return@onEach
                 }
-                _state.update {
-                    it.copy(
-                        habitStats = habitStats,
-                        totalHabits = habits.size,
-                        totalCompletions = 0,
-                        isLoading = false
-                    )
+
+                val logFlows = habits.map { habit ->
+                    getHabitLogsUseCase(habit.id)
                 }
+
+                combine(logFlows) { logArrays ->
+                    var totalCompletions = 0
+                    val habitStats = habits.mapIndexed { index, habit ->
+                        val count = logArrays[index].size
+                        totalCompletions += count
+                        HabitStats(habit = habit, completionCount = count)
+                    }
+                    Pair(habitStats, totalCompletions)
+                }
+                    .catch { e ->
+                        _effect.trySend(StatisticsEffect.ShowError(e.message ?: "Error loading logs"))
+                        _state.update { it.copy(isLoading = false) }
+                    }
+                    .onEach { (habitStats, totalCompletions) ->
+                        _state.update {
+                            it.copy(
+                                habitStats = habitStats,
+                                totalHabits = habits.size,
+                                totalCompletions = totalCompletions,
+                                isLoading = false
+                            )
+                        }
+                    }
+                    .launchIn(viewModelScope)
             }
             .launchIn(viewModelScope)
     }

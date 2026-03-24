@@ -91,6 +91,7 @@ fun HabitsScreen(
                 items(state.habits, key = { it.id }) { habit ->
                     HabitItem(
                         habit = habit,
+                        isCompletedToday = habit.id in state.completedTodayIds,
                         onComplete = {
                             viewModel.onIntent(HabitIntent.CompleteHabit(habit.id))
                         },

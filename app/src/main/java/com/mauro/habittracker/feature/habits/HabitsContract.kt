@@ -4,6 +4,7 @@ import com.mauro.habittracker.core.domain.model.Habit
 
 data class HabitState(
     val habits: List<Habit> = emptyList(),
+    val completedTodayIds: Set<Long> = emptySet(),
     val isLoading: Boolean = false
 )
 
