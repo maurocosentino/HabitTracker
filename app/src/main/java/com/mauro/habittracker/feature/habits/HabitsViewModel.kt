@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.mauro.habittracker.core.domain.model.Habit
 import com.mauro.habittracker.core.domain.model.HabitLog
 import com.mauro.habittracker.core.domain.usecase.DeleteHabitUseCase
+import com.mauro.habittracker.core.domain.usecase.DeleteLogUseCase
 import com.mauro.habittracker.core.domain.usecase.GetHabitLogsUseCase
 import com.mauro.habittracker.core.domain.usecase.GetHabitsUseCase
 import com.mauro.habittracker.core.domain.usecase.InsertHabitUseCase
@@ -34,7 +35,8 @@ class HabitsViewModel @Inject constructor(
     private val getHabitLogsUseCase: GetHabitLogsUseCase,
     private val insertHabitUseCase: InsertHabitUseCase,
     private val deleteHabitUseCase: DeleteHabitUseCase,
-    private val insertLogUseCase: InsertLogUseCase
+    private val insertLogUseCase: InsertLogUseCase,
+    private val deleteLogUseCase: DeleteLogUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HabitState())
@@ -51,7 +53,7 @@ class HabitsViewModel @Inject constructor(
         when (intent) {
             is HabitIntent.AddHabit -> addHabit(intent.habit)
             is HabitIntent.DeleteHabit -> deleteHabit(intent.habit)
-            is HabitIntent.CompleteHabit -> completeHabit(intent.habitId)
+            is HabitIntent.ToggleComplete -> toggleComplete(intent.habitId, intent.isCompleted)
         }
     }
 
@@ -122,17 +124,19 @@ class HabitsViewModel @Inject constructor(
         }
     }
 
-    private fun completeHabit(habitId: Long) {
+    private fun toggleComplete(habitId: Long, shouldBeCompleted: Boolean) {
         viewModelScope.launch {
             try {
-                val log = HabitLog(
-                    habitId = habitId,
-                    completedDate = LocalDate.now()
-                )
-                insertLogUseCase(log)
-                _effect.send(HabitEffect.ShowSuccess("Habit completed!"))
+                val today = LocalDate.now()
+                if (shouldBeCompleted) {
+                    insertLogUseCase(HabitLog(habitId = habitId, completedDate = today))
+                    _effect.send(HabitEffect.ShowSuccess("Habit completed!"))
+                } else {
+                    deleteLogUseCase(habitId, today)
+                    _effect.send(HabitEffect.ShowSuccess("Habit uncompleted"))
+                }
             } catch (e: Exception) {
-                _effect.send(HabitEffect.ShowError(e.message ?: "Error completing habit"))
+                _effect.send(HabitEffect.ShowError(e.message ?: "Error updating habit"))
             }
         }
     }

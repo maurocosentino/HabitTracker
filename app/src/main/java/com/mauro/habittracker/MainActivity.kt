@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import com.mauro.habittracker.navigation.HabitNavGraph
+import com.mauro.habittracker.ui.theme.HabitTrackerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -16,7 +17,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            HabitNavGraph()
+            HabitTrackerTheme {
+                HabitNavGraph()
+            }
         }
     }
 }

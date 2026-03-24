@@ -35,7 +35,10 @@ fun HabitsScreen(
                     snackbarHostState.showSnackbar(effect.message)
                 }
                 is HabitEffect.ShowSuccess -> {
-                    snackbarHostState.showSnackbar(effect.message)
+                    snackbarHostState.showSnackbar(
+                        message = effect.message,
+                        duration = SnackbarDuration.Short
+                    )
                 }
                 is HabitEffect.NavigateToCreateHabit -> {
                     showAddDialog = true
@@ -47,11 +50,30 @@ fun HabitsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Habit Tracker") }
+                title = {
+                    Column {
+                        Text(
+                            text = "My Habits",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        if (state.habits.isNotEmpty()) {
+                            val completed = state.completedTodayIds.size
+                            val total = state.habits.size
+                            Text(
+                                text = "$completed of $total completed today",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
+            FloatingActionButton(
+                onClick = { showAddDialog = true },
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Add habit"
@@ -89,11 +111,14 @@ fun HabitsScreen(
                 contentPadding = PaddingValues(vertical = 8.dp)
             ) {
                 items(state.habits, key = { it.id }) { habit ->
+                    val isCompleted = habit.id in state.completedTodayIds
                     HabitItem(
                         habit = habit,
-                        isCompletedToday = habit.id in state.completedTodayIds,
-                        onComplete = {
-                            viewModel.onIntent(HabitIntent.CompleteHabit(habit.id))
+                        isCompletedToday = isCompleted,
+                        onToggle = { checked ->
+                            viewModel.onIntent(
+                                HabitIntent.ToggleComplete(habit.id, checked)
+                            )
                         },
                         onDelete = {
                             viewModel.onIntent(HabitIntent.DeleteHabit(habit))
@@ -154,11 +179,11 @@ fun AddHabitDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Description") },
+                    label = { Text("Description (optional)") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -177,7 +202,7 @@ fun AddHabitDialog(
             }
         },
         confirmButton = {
-            TextButton(
+            FilledTonalButton(
                 onClick = {
                     if (name.isNotBlank()) {
                         onConfirm(name, description, selectedFrequency)

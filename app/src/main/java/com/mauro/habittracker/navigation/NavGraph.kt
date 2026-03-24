@@ -21,8 +21,8 @@ import com.mauro.habittracker.feature.habits.HabitsScreen
 import com.mauro.habittracker.feature.statistics.StatisticsScreen
 
 sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
-    data object Habits : Screen("habits", "Habits", Icons.Default.Home)
-    data object Statistics : Screen("statistics", "Statistics", Icons.Default.DateRange)
+    data object Habits : Screen("habits", "Habits", Icons.Filled.Home)
+    data object Statistics : Screen("statistics", "Stats", Icons.Filled.DateRange)
 }
 
 private val bottomNavItems = listOf(Screen.Habits, Screen.Statistics)

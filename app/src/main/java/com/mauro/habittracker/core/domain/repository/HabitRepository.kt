@@ -12,4 +12,5 @@ interface HabitRepository{
     suspend fun deleteHabit(habit: Habit)
     fun getLogsForHabit(habitId: Long) : Flow<List<HabitLog>>
     suspend fun insertLog(log: HabitLog)
+    suspend fun deleteLog(habitId: Long, date: java.time.LocalDate)
 }

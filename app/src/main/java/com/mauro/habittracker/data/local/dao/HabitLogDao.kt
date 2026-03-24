@@ -16,5 +16,6 @@ interface HabitLogDao {
     @Query("SELECT * FROM habitLog WHERE habitId = :habitId")
     fun getLogsForHabit(habitId: Long): Flow<List<HabitLogEntity>>
 
-
+    @Query("DELETE FROM habitLog WHERE habitId = :habitId AND completedDate = :date")
+    suspend fun deleteLogByDate(habitId: Long, date: Long)
 }

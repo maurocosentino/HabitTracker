@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.mauro.habittracker.core.domain.model.Frequency
 import com.mauro.habittracker.core.domain.model.Habit
 import com.mauro.habittracker.core.domain.usecase.DeleteHabitUseCase
+import com.mauro.habittracker.core.domain.usecase.DeleteLogUseCase
 import com.mauro.habittracker.core.domain.usecase.GetHabitLogsUseCase
 import com.mauro.habittracker.core.domain.usecase.GetHabitsUseCase
 import com.mauro.habittracker.core.domain.usecase.InsertHabitUseCase
@@ -32,6 +33,7 @@ class HabitsViewModelTest {
     private lateinit var insertHabitUseCase: InsertHabitUseCase
     private lateinit var deleteHabitUseCase: DeleteHabitUseCase
     private lateinit var insertLogUseCase: InsertLogUseCase
+    private lateinit var deleteLogUseCase: DeleteLogUseCase
 
     private lateinit var viewModel: HabitsViewModel
 
@@ -44,13 +46,15 @@ class HabitsViewModelTest {
         insertHabitUseCase = InsertHabitUseCase(repository)
         deleteHabitUseCase = DeleteHabitUseCase(repository)
         insertLogUseCase = InsertLogUseCase(repository)
+        deleteLogUseCase = DeleteLogUseCase(repository)
 
         viewModel = HabitsViewModel(
             getHabitsUseCase,
             getHabitLogsUseCase,
             insertHabitUseCase,
             deleteHabitUseCase,
-            insertLogUseCase
+            insertLogUseCase,
+            deleteLogUseCase
         )
     }
 

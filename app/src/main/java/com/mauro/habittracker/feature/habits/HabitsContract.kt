@@ -13,7 +13,7 @@ sealed class HabitIntent {
 
     data class DeleteHabit(val habit: Habit) : HabitIntent()
 
-    data class CompleteHabit(val habitId: Long) : HabitIntent()
+    data class ToggleComplete(val habitId: Long, val isCompleted: Boolean) : HabitIntent()
 }
 
 sealed class HabitEffect {
