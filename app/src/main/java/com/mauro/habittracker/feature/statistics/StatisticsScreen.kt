@@ -3,6 +3,7 @@ package com.mauro.habittracker.feature.statistics
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,14 +27,18 @@ fun StatisticsScreen(
     val state by viewModel.state.collectAsState()
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
                 title = {
                     Column {
                         Text(
-                            text = "Statistics",
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Bold,
+                            text = "STATISTICS",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Black,
                             letterSpacing = (-0.5).sp
                         )
                         Text(
@@ -49,9 +54,16 @@ fun StatisticsScreen(
 
         if (state.isLoading) {
             Box(
-                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
                 contentAlignment = Alignment.Center
-            ) { CircularProgressIndicator() }
+            ) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary,
+                    strokeWidth = 2.dp
+                )
+            }
         } else {
             LazyColumn(
                 modifier = Modifier
@@ -73,9 +85,9 @@ fun StatisticsScreen(
                     Text(
                         text = "HABITS OVERVIEW",
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        letterSpacing = 1.sp,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        letterSpacing = 1.5.sp,
                         modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
                     )
                 }
@@ -83,7 +95,9 @@ fun StatisticsScreen(
                 if (state.habitStats.isEmpty()) {
                     item {
                         Box(
-                            modifier = Modifier.fillMaxWidth().padding(32.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -105,21 +119,24 @@ fun StatisticsScreen(
 
 @Composable
 fun SummaryHeroCard(totalHabits: Int, totalCompletions: Int) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primary
-        ),
-        elevation = CardDefaults.cardElevation(0.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.5.dp,
+                color = MaterialTheme.colorScheme.outline,
+                shape = RoundedCornerShape(20.dp)
+            )
+            .clip(RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.primary)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Text(
                 text = "OVERVIEW",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f),
-                letterSpacing = 1.sp
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f),
+                letterSpacing = 1.5.sp
             )
             Spacer(modifier = Modifier.height(12.dp))
             Row(
@@ -137,7 +154,9 @@ fun SummaryHeroCard(totalHabits: Int, totalCompletions: Int) {
                     modifier = Modifier.weight(1f)
                 )
                 StatPill(
-                    value = if (totalHabits > 0) "${((totalCompletions.toFloat() / totalHabits) * 100).toInt()}%" else "0%",
+                    value = if (totalHabits > 0)
+                        "${((totalCompletions.toFloat() / totalHabits) * 100).toInt()}%"
+                    else "0%",
                     label = "Avg per habit",
                     modifier = Modifier.weight(1f)
                 )
@@ -152,10 +171,15 @@ fun StatPill(
     label: String,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.12f)
+    Box(
+        modifier = modifier
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.25f),
+                shape = RoundedCornerShape(14.dp)
+            )
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.1f))
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -164,7 +188,7 @@ fun StatPill(
             Text(
                 text = value,
                 fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.onPrimary,
                 lineHeight = 28.sp
             )
@@ -172,6 +196,7 @@ fun StatPill(
             Text(
                 text = label,
                 fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
             )
         }
@@ -183,13 +208,16 @@ fun HabitStatRow(habitStat: HabitStats) {
     val maxCompletions = 30f
     val progress = (habitStat.completionCount / maxCompletions).coerceIn(0f, 1f)
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(0.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outline,
+                shape = RoundedCornerShape(14.dp)
+            )
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         Row(
             modifier = Modifier
@@ -202,7 +230,7 @@ fun HabitStatRow(habitStat: HabitStats) {
                 Text(
                     text = habitStat.habit.name,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(2.dp))
@@ -210,31 +238,36 @@ fun HabitStatRow(habitStat: HabitStats) {
                     text = habitStat.habit.frequency.name.lowercase()
                         .replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.5.sp
                 )
             }
-            // Mini progress bar
             Box(
                 modifier = Modifier
                     .width(56.dp)
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .height(5.dp)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline,
+                        shape = RoundedCornerShape(3.dp)
+                    )
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(MaterialTheme.colorScheme.background)
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()
                         .fillMaxWidth(progress)
-                        .clip(RoundedCornerShape(2.dp))
+                        .clip(RoundedCornerShape(3.dp))
                         .background(MaterialTheme.colorScheme.primary)
                 )
             }
             Text(
                 text = "${habitStat.completionCount}",
                 style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.widthIn(min = 20.dp)
             )
         }

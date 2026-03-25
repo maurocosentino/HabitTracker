@@ -4,6 +4,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,22 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mauro.habittracker.core.domain.model.Habit
 
-private val iconBackgrounds = listOf(
-    Color(0xFFD1FAE5) to Color(0xFF065F46),
-    Color(0xFFDBEAFE) to Color(0xFF1E40AF),
-    Color(0xFFEDE9FE) to Color(0xFF5B21B6),
-    Color(0xFFFEF3C7) to Color(0xFF92400E),
-    Color(0xFFFFE4E6) to Color(0xFF9F1239),
-)
-
-private val iconBackgroundsDark = listOf(
-    Color(0xFF064E3B) to Color(0xFF6EE7B7),
-    Color(0xFF1E3A5F) to Color(0xFF93C5FD),
-    Color(0xFF2E1065) to Color(0xFFC4B5FD),
-    Color(0xFF451A03) to Color(0xFFFCD34D),
-    Color(0xFF4C0519) to Color(0xFFFDA4AF),
-)
-
 @Composable
 fun HabitItem(
     habit: Habit,
@@ -47,14 +32,9 @@ fun HabitItem(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isDark = !MaterialTheme.colorScheme.surface.luminance().isLight()
-    val colorIndex = (habit.name.first().code) % iconBackgrounds.size
-    val (bgColor, iconColor) = if (isDark) iconBackgroundsDark[colorIndex]
-    else iconBackgrounds[colorIndex]
-
     val cardColor by animateColorAsState(
         targetValue = if (isCompletedToday)
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+            MaterialTheme.colorScheme.surfaceVariant
         else
             MaterialTheme.colorScheme.surface,
         label = "cardColor"
@@ -66,13 +46,17 @@ fun HabitItem(
         label = "checkScale"
     )
 
-    Card(
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 5.dp),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = cardColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            .padding(horizontal = 16.dp, vertical = 5.dp)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outline,
+                shape = RoundedCornerShape(16.dp)
+            )
+            .clip(RoundedCornerShape(16.dp))
+            .background(cardColor)
     ) {
         Row(
             modifier = Modifier
@@ -82,16 +66,21 @@ fun HabitItem(
         ) {
             Box(
                 modifier = Modifier
-                    .size(46.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(bgColor),
+                    .size(44.dp)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.background),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = habit.name.first().uppercaseChar().toString(),
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = iconColor
+                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -101,11 +90,11 @@ fun HabitItem(
                 Text(
                     text = habit.name,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     textDecoration = if (isCompletedToday) TextDecoration.LineThrough
                     else TextDecoration.None,
                     color = if (isCompletedToday)
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                     else
                         MaterialTheme.colorScheme.onSurface
                 )
@@ -115,22 +104,27 @@ fun HabitItem(
                         text = habit.description,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                            alpha = if (isCompletedToday) 0.45f else 0.8f
+                            alpha = if (isCompletedToday) 0.4f else 1f
                         )
                     )
                 }
                 Spacer(modifier = Modifier.height(5.dp))
-                Surface(
-                    shape = RoundedCornerShape(6.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                Box(
+                    modifier = Modifier
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline,
+                            shape = RoundedCornerShape(6.dp)
+                        )
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(MaterialTheme.colorScheme.background)
+                        .padding(horizontal = 7.dp, vertical = 3.dp)
                 ) {
                     Text(
-                        text = habit.frequency.name.lowercase()
-                            .replaceFirstChar { it.uppercase() },
+                        text = habit.frequency.name.lowercase().replaceFirstChar { it.uppercase() },
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
@@ -141,10 +135,18 @@ fun HabitItem(
                 modifier = Modifier
                     .scale(checkScale)
                     .size(32.dp)
+                    .border(
+                        width = 1.5.dp,
+                        color = if (isCompletedToday)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.outline,
+                        shape = CircleShape
+                    )
                     .clip(CircleShape)
                     .background(
                         if (isCompletedToday) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.surfaceVariant
+                        else Color.Transparent
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -169,16 +171,10 @@ fun HabitItem(
                 Icon(
                     imageVector = Icons.Outlined.Delete,
                     contentDescription = "Delete habit",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp)
                 )
             }
         }
     }
-}
-
-private fun Float.isLight() = this > 0.5f
-private fun Color.luminance(): Float {
-    val r = red; val g = green; val b = blue
-    return 0.2126f * r + 0.7152f * g + 0.0722f * b
 }
