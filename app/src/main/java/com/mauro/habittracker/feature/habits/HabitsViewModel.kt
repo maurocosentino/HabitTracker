@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -60,10 +62,9 @@ class HabitsViewModel @Inject constructor(
     private fun observeHabitsWithLogs() {
         getHabitsUseCase()
             .distinctUntilChanged()
-            .onEach { habits ->
+            .flatMapLatest { habits ->
                 if (habits.isEmpty()) {
-                    _state.update { it.copy(habits = emptyList(), completedTodayIds = emptySet(), isLoading = false) }
-                    return@onEach
+                    return@flatMapLatest flowOf(HabitState(isLoading = false))
                 }
 
                 val today = LocalDate.now().toEpochDay()
@@ -79,24 +80,18 @@ class HabitsViewModel @Inject constructor(
                             completedToday.add(habit.id)
                         }
                     }
-                    Pair(habits, completedToday)
+                    HabitState(
+                        habits = habits,
+                        completedTodayIds = completedToday,
+                        isLoading = false
+                    )
                 }
-                    .catch { e ->
-                        _effect.trySend(HabitEffect.ShowError(e.message ?: "Error loading logs"))
-                    }
-                    .onEach { (habits, completedToday) ->
-                        _state.update {
-                            it.copy(
-                                habits = habits,
-                                completedTodayIds = completedToday,
-                                isLoading = false
-                            )
-                        }
-                    }
-                    .launchIn(viewModelScope)
             }
             .catch { e ->
                 _effect.trySend(HabitEffect.ShowError(e.message ?: "Error loading habits"))
+            }
+            .onEach { newState ->
+                _state.value = newState
             }
             .launchIn(viewModelScope)
     }

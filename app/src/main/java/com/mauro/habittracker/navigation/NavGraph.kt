@@ -2,6 +2,8 @@ package com.mauro.habittracker.navigation
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -27,8 +29,10 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector)
 
 private val bottomNavItems = listOf(Screen.Habits, Screen.Statistics)
 
+private const val ANIM_DURATION = 300
+
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun HabitNavGraph() {
     val navController = rememberNavController()
@@ -39,10 +43,14 @@ fun HabitNavGraph() {
         bottomBar = {
             NavigationBar {
                 bottomNavItems.forEach { screen ->
+                    val selected = currentDestination
+                        ?.hierarchy
+                        ?.any { it.route == screen.route } == true
+
                     NavigationBarItem(
                         icon = { Icon(screen.icon, contentDescription = screen.label) },
                         label = { Text(screen.label) },
-                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                        selected = selected,
                         onClick = {
                             navController.navigate(screen.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
@@ -62,10 +70,63 @@ fun HabitNavGraph() {
             startDestination = Screen.Habits.route,
             modifier = Modifier.padding(paddingValues)
         ) {
-            composable(Screen.Habits.route) {
+            composable(
+                route = Screen.Habits.route,
+                enterTransition = {
+                    slideInHorizontally(
+                        initialOffsetX = { -it },
+                        animationSpec = tween(ANIM_DURATION)
+                    ) + fadeIn(tween(ANIM_DURATION))
+                },
+                exitTransition = {
+                    slideOutHorizontally(
+                        targetOffsetX = { -it },
+                        animationSpec = tween(ANIM_DURATION)
+                    ) + fadeOut(tween(ANIM_DURATION))
+                },
+                popEnterTransition = {
+                    slideInHorizontally(
+                        initialOffsetX = { -it },
+                        animationSpec = tween(ANIM_DURATION)
+                    ) + fadeIn(tween(ANIM_DURATION))
+                },
+                popExitTransition = {
+                    slideOutHorizontally(
+                        targetOffsetX = { -it },
+                        animationSpec = tween(ANIM_DURATION)
+                    ) + fadeOut(tween(ANIM_DURATION))
+                }
+            ) {
                 HabitsScreen()
             }
-            composable(Screen.Statistics.route) {
+
+            composable(
+                route = Screen.Statistics.route,
+                enterTransition = {
+                    slideInHorizontally(
+                        initialOffsetX = { it },
+                        animationSpec = tween(ANIM_DURATION)
+                    ) + fadeIn(tween(ANIM_DURATION))
+                },
+                exitTransition = {
+                    slideOutHorizontally(
+                        targetOffsetX = { it },
+                        animationSpec = tween(ANIM_DURATION)
+                    ) + fadeOut(tween(ANIM_DURATION))
+                },
+                popEnterTransition = {
+                    slideInHorizontally(
+                        initialOffsetX = { it },
+                        animationSpec = tween(ANIM_DURATION)
+                    ) + fadeIn(tween(ANIM_DURATION))
+                },
+                popExitTransition = {
+                    slideOutHorizontally(
+                        targetOffsetX = { it },
+                        animationSpec = tween(ANIM_DURATION)
+                    ) + fadeOut(tween(ANIM_DURATION))
+                }
+            ) {
                 StatisticsScreen()
             }
         }

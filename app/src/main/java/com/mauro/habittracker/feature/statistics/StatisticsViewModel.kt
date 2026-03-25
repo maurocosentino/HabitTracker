@@ -8,14 +8,7 @@ import com.mauro.habittracker.core.domain.usecase.GetHabitLogsUseCase
 import com.mauro.habittracker.core.domain.usecase.GetHabitsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
@@ -33,39 +26,24 @@ class StatisticsViewModel @Inject constructor(
     val effect = _effect.receiveAsFlow()
 
     init {
-        loadStats()
+        observeStats()
     }
 
     fun onIntent(intent: StatisticsIntent) {
         when (intent) {
-            is StatisticsIntent.LoadStats -> loadStats()
+            is StatisticsIntent.LoadStats -> observeStats()
         }
     }
 
-    private fun loadStats() {
-        _state.update { it.copy(isLoading = true) }
-
+    private fun observeStats() {
         getHabitsUseCase()
-            .catch { e ->
-                _effect.trySend(StatisticsEffect.ShowError(e.message ?: "Error loading stats"))
-                _state.update { it.copy(isLoading = false) }
-            }
-            .onEach { habits ->
+            .distinctUntilChanged()
+            .flatMapLatest { habits ->
                 if (habits.isEmpty()) {
-                    _state.update {
-                        it.copy(
-                            habitStats = emptyList(),
-                            totalHabits = 0,
-                            totalCompletions = 0,
-                            isLoading = false
-                        )
-                    }
-                    return@onEach
+                    return@flatMapLatest flowOf(StatisticsState(isLoading = false))
                 }
 
-                val logFlows = habits.map { habit ->
-                    getHabitLogsUseCase(habit.id)
-                }
+                val logFlows = habits.map { habit -> getHabitLogsUseCase(habit.id) }
 
                 combine(logFlows) { logArrays ->
                     var totalCompletions = 0
@@ -74,23 +52,20 @@ class StatisticsViewModel @Inject constructor(
                         totalCompletions += count
                         HabitStats(habit = habit, completionCount = count)
                     }
-                    Pair(habitStats, totalCompletions)
+                    StatisticsState(
+                        habitStats = habitStats,
+                        totalHabits = habits.size,
+                        totalCompletions = totalCompletions,
+                        isLoading = false
+                    )
                 }
-                    .catch { e ->
-                        _effect.trySend(StatisticsEffect.ShowError(e.message ?: "Error loading logs"))
-                        _state.update { it.copy(isLoading = false) }
-                    }
-                    .onEach { (habitStats, totalCompletions) ->
-                        _state.update {
-                            it.copy(
-                                habitStats = habitStats,
-                                totalHabits = habits.size,
-                                totalCompletions = totalCompletions,
-                                isLoading = false
-                            )
-                        }
-                    }
-                    .launchIn(viewModelScope)
+            }
+            .catch { e ->
+                _effect.trySend(StatisticsEffect.ShowError(e.message ?: "Error loading stats"))
+                _state.update { it.copy(isLoading = false) }
+            }
+            .onEach { newState ->
+                _state.value = newState
             }
             .launchIn(viewModelScope)
     }

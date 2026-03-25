@@ -2,17 +2,19 @@ package com.mauro.habittracker.feature.statistics
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -25,47 +27,67 @@ fun StatisticsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Statistics") }
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 20.dp)
+                    .padding(top = 16.dp, bottom = 8.dp)
+            ) {
+                Text(
+                    text = "Statistics",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    letterSpacing = (-0.5).sp
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "Your progress over time",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     ) { paddingValues ->
+
         if (state.isLoading) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
                 contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
+            ) { CircularProgressIndicator() }
         } else {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp)
+                contentPadding = PaddingValues(
+                    start = 16.dp, end = 16.dp, top = 16.dp, bottom = 80.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
-                    StatsSummaryCard(
+                    SummaryHeroCard(
                         totalHabits = state.totalHabits,
                         totalCompletions = state.totalCompletions
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                item {
                     Text(
-                        text = "Habits Overview",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        text = "HABITS OVERVIEW",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        letterSpacing = 1.sp,
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
 
                 if (state.habitStats.isEmpty()) {
                     item {
                         Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(32.dp),
+                            modifier = Modifier.fillMaxWidth().padding(32.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -77,8 +99,7 @@ fun StatisticsScreen(
                     }
                 } else {
                     items(state.habitStats) { habitStat ->
-                        HabitStatCard(habitStat = habitStat)
-                        Spacer(modifier = Modifier.height(8.dp))
+                        HabitStatRow(habitStat = habitStat)
                     }
                 }
             }
@@ -87,80 +108,138 @@ fun StatisticsScreen(
 }
 
 @Composable
-fun StatsSummaryCard(
-    totalHabits: Int,
-    totalCompletions: Int
-) {
+fun SummaryHeroCard(totalHabits: Int, totalCompletions: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        ),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Text(
-                text = "Summary",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                text = "OVERVIEW",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f),
+                letterSpacing = 1.sp
             )
             Spacer(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                StatItem(label = "Total Habits", value = totalHabits.toString())
-                StatItem(label = "Completions", value = totalCompletions.toString())
+                StatPill(
+                    value = totalHabits.toString(),
+                    label = "Total habits",
+                    modifier = Modifier.weight(1f)
+                )
+                StatPill(
+                    value = totalCompletions.toString(),
+                    label = "Completions",
+                    modifier = Modifier.weight(1f)
+                )
+                StatPill(
+                    value = if (totalHabits > 0) "${((totalCompletions.toFloat() / totalHabits) * 100).toInt()}%" else "0%",
+                    label = "Avg per habit",
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
     }
 }
 
 @Composable
-fun StatItem(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+fun StatPill(
+    value: String,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.12f)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = value,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimary,
+                lineHeight = 28.sp
+            )
+            Spacer(modifier = Modifier.height(3.dp))
+            Text(
+                text = label,
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
+            )
+        }
     }
 }
 
 @Composable
-fun HabitStatCard(habitStat: HabitStats) {
+fun HabitStatRow(habitStat: HabitStats) {
+    val maxCompletions = 30f
+    val progress = (habitStat.completionCount / maxCompletions).coerceIn(0f, 1f)
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = habitStat.habit.name,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = habitStat.habit.frequency.name,
+                    text = habitStat.habit.frequency.name.lowercase()
+                        .replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            // Mini progress bar
+            Box(
+                modifier = Modifier
+                    .width(56.dp)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(progress)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(MaterialTheme.colorScheme.primary)
                 )
             }
             Text(
-                text = "${habitStat.completionCount} completed",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = "${habitStat.completionCount}",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.widthIn(min = 20.dp)
             )
         }
     }
