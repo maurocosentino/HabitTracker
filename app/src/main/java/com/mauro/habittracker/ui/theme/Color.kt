@@ -2,7 +2,6 @@ package com.mauro.habittracker.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// B&W Palette — inspired by "Broken Swords" reference
 val Black         = Color(0xFF1A1A1A)
 val White         = Color(0xFFFFFFFF)
 val OffWhite      = Color(0xFFF5F0E8)   // fondo crema de la imagen

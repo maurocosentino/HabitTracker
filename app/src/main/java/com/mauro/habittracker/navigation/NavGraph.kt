@@ -218,7 +218,6 @@ fun HabitNavGraph() {
                 }
             }
 
-            // Central add button
             Box(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
