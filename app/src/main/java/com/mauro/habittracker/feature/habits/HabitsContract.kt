@@ -4,6 +4,7 @@ import com.mauro.habittracker.core.domain.model.Habit
 
 data class HabitState(
     val habits: List<Habit> = emptyList(),
+    val completedTodayIds: Set<Long> = emptySet(),
     val isLoading: Boolean = false
 )
 
@@ -12,12 +13,14 @@ sealed class HabitIntent {
 
     data class DeleteHabit(val habit: Habit) : HabitIntent()
 
-    data class CompleteHabit(val habitId: Long) : HabitIntent()
+    data class ToggleComplete(val habitId: Long, val isCompleted: Boolean) : HabitIntent()
 }
 
 sealed class HabitEffect {
 
     data class ShowError(val message: String) : HabitEffect()
+
+    data class ShowSuccess(val message: String) : HabitEffect()
 
     object NavigateToCreateHabit : HabitEffect()
 }

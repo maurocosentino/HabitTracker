@@ -43,4 +43,8 @@ class HabitRepositoryImpl @Inject constructor(
     override suspend fun insertLog(log: HabitLog) {
         habitLogDao.insertLog(log.toEntity())
     }
+
+    override suspend fun deleteLog(habitId: Long, date: java.time.LocalDate) {
+        habitLogDao.deleteLogByDate(habitId, date.toEpochDay())
+    }
 }

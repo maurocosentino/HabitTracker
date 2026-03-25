@@ -36,4 +36,8 @@ class FakeHabitRepository : HabitRepository {
     override suspend fun insertLog(log: HabitLog) {
         // no-op para tests
     }
+
+    override suspend fun deleteLog(habitId: Long, date: java.time.LocalDate) {
+        // no-op para tests
+    }
 }
