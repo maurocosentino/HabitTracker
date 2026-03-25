@@ -8,14 +8,13 @@ A daily habit tracker for Android built with Kotlin and Jetpack Compose.
 - Toggle completion with visual feedback (strikethrough, color change)
 - Daily progress bar showing completion percentage
 - Statistics screen with overview and per-habit counts
-- Dark theme with cyan/teal color palette
-- Bottom navigation with animated screen transitions
+- B&W theme with outlined design
+- Floating pill navbar with central add button
 
-## Screenshot
+## Preview
 
-<!-- Add your screenshot here -->
 <p align="center">
-  <img src="screenshots/app.png" width="300" />
+  <img src="screenshots/demo.gif" width="300" />
 </p>
 
 ## Tech Stack

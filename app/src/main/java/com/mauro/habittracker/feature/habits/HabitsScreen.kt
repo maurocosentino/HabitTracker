@@ -5,12 +5,11 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,10 +30,11 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HabitsScreen(
-    viewModel: HabitsViewModel = hiltViewModel()
+    viewModel: HabitsViewModel = hiltViewModel(),
+    showAddDialog: Boolean = false,
+    onDismissAddDialog: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsState()
-    var showAddDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     val completed = state.completedTodayIds.size
@@ -51,20 +51,24 @@ fun HabitsScreen(
                 is HabitEffect.ShowSuccess -> snackbarHostState.showSnackbar(
                     effect.message, duration = SnackbarDuration.Short
                 )
-                is HabitEffect.NavigateToCreateHabit -> showAddDialog = true
+                is HabitEffect.NavigateToCreateHabit -> {}
             }
         }
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
                 title = {
                     Column {
                         Text(
-                            text = "My Habits",
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Bold,
+                            text = "MY HABITS",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Black,
                             letterSpacing = (-0.5).sp
                         )
                         Text(
@@ -75,20 +79,6 @@ fun HabitsScreen(
                     }
                 }
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddDialog = true },
-                containerColor = MaterialTheme.colorScheme.primary,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.size(56.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add habit",
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
-            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
@@ -101,19 +91,19 @@ fun HabitsScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = "\u2728", fontSize = 48.sp)
+                    Text(text = "\u25C7", fontSize = 48.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = "No habits yet",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = "Tap + to create your first habit",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -122,22 +112,26 @@ fun HabitsScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
-                contentPadding = PaddingValues(bottom = 80.dp, top = 4.dp)
+                contentPadding = PaddingValues(bottom = 100.dp, top = 4.dp)
             ) {
                 if (total > 0) {
                     item {
-                        Surface(
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 6.dp),
-                            shape = RoundedCornerShape(14.dp),
-                            color = MaterialTheme.colorScheme.surface,
-                            tonalElevation = 1.dp
+                                .padding(horizontal = 16.dp, vertical = 6.dp)
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.outline,
+                                    shape = RoundedCornerShape(14.dp)
+                                )
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(MaterialTheme.colorScheme.surface)
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                                    .padding(horizontal = 14.dp, vertical = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
@@ -150,16 +144,16 @@ fun HabitsScreen(
                                     progress = { progress },
                                     modifier = Modifier
                                         .weight(1f)
-                                        .height(6.dp)
-                                        .clip(RoundedCornerShape(3.dp)),
+                                        .height(7.dp)
+                                        .clip(RoundedCornerShape(4.dp)),
                                     color = MaterialTheme.colorScheme.primary,
                                     trackColor = MaterialTheme.colorScheme.surfaceVariant
                                 )
                                 Text(
                                     text = "${(progress * 100).toInt()}%",
                                     style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.primary
+                                    fontWeight = FontWeight.Black,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -170,12 +164,13 @@ fun HabitsScreen(
                     Text(
                         text = "TODAY",
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        letterSpacing = 1.sp,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        letterSpacing = 1.5.sp,
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
                     )
                 }
+
                 items(state.habits, key = { it.id }) { habit ->
                     val isCompleted = habit.id in state.completedTodayIds
                     AnimatedVisibility(
@@ -201,13 +196,18 @@ fun HabitsScreen(
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
-            ) { CircularProgressIndicator() }
+            ) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary,
+                    strokeWidth = 2.dp
+                )
+            }
         }
     }
 
     if (showAddDialog) {
         AddHabitDialog(
-            onDismiss = { showAddDialog = false },
+            onDismiss = onDismissAddDialog,
             onConfirm = { name, description, frequency ->
                 val habit = Habit(
                     name = name,
@@ -218,7 +218,7 @@ fun HabitsScreen(
                     createdAt = LocalDate.now()
                 )
                 viewModel.onIntent(HabitIntent.AddHabit(habit))
-                showAddDialog = false
+                onDismissAddDialog()
             }
         )
     }
@@ -236,12 +236,14 @@ fun AddHabitDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(20.dp),
+        containerColor = MaterialTheme.colorScheme.background,
+        tonalElevation = 0.dp,
         title = {
             Text(
-                "New Habit",
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
+                "NEW HABIT",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black
             )
         },
         text = {
@@ -252,7 +254,11 @@ fun AddHabitDialog(
                     label = { Text("Name") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 OutlinedTextField(
@@ -260,13 +266,18 @@ fun AddHabitDialog(
                     onValueChange = { description = it },
                     label = { Text("Description (optional)") },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
                 )
                 Spacer(modifier = Modifier.height(14.dp))
                 Text(
-                    "Frequency",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold
+                    "FREQUENCY",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.sp
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -276,24 +287,52 @@ fun AddHabitDialog(
                             onClick = { selectedFrequency = freq },
                             label = {
                                 Text(
-                                    freq.name.lowercase()
-                                        .replaceFirstChar { it.uppercase() }
+                                    freq.name.lowercase().replaceFirstChar { it.uppercase() },
+                                    fontWeight = FontWeight.Bold
                                 )
                             },
-                            shape = RoundedCornerShape(10.dp)
+                            shape = RoundedCornerShape(10.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                containerColor = MaterialTheme.colorScheme.surface
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = selectedFrequency == freq,
+                                borderColor = MaterialTheme.colorScheme.outline,
+                                selectedBorderColor = MaterialTheme.colorScheme.primary
+                            )
                         )
                     }
                 }
             }
         },
         confirmButton = {
-            FilledTonalButton(
+            Button(
                 onClick = { if (name.isNotBlank()) onConfirm(name, description, selectedFrequency) },
-                shape = RoundedCornerShape(12.dp)
-            ) { Text("Add habit") }
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                modifier = Modifier.border(
+                    1.dp,
+                    MaterialTheme.colorScheme.outline,
+                    RoundedCornerShape(12.dp)
+                )
+            ) {
+                Text("ADD HABIT", fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
+            }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) {
+                Text(
+                    "Cancel",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
         }
     )
 }
